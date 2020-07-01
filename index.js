@@ -41,6 +41,15 @@ http.createServer(function(req, res) {
                 res.end();
             });
             break;
+        case /^\/duplicates/.test(req.url):
+            fs.readFile(__dirname + '/tracks.json', function (err, json) {
+                let data = JSON.parse(json);
+                let arr = Array.from(new Set(data));
+                fs.writeFile('tracks.json', JSON.stringify(arr), 'utf8', function () {
+                    res.end();
+                });
+            });
+            break;
         case /^\/random/.test(req.url):
             fs.readFile(__dirname + '/tracks.json', function (err, json) {
                 let data = JSON.parse(json);
@@ -63,7 +72,7 @@ http.createServer(function(req, res) {
             break;
         case /^\/parse/.test(req.url):
             var tracks = [];
-            spotify.getCategories({country: 'JP',limit: 50}).then(function (data) {
+            spotify.getCategories({country:'JP',locale: 'ja_JP',limit: 50}).then(function (data) {
                 return data.body.categories.items.map(function (category) {
                     return category.id
                 });
@@ -143,4 +152,4 @@ http.createServer(function(req, res) {
             res.end();
             break;
     }
-}).listen(9003);
+}).listen(config.port);
