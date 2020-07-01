@@ -42,7 +42,7 @@ http.createServer(function(req, res) {
             });
             break;
         case /^\/random/.test(req.url):
-            fs.readFile('./tracks.json', function (err, json) {
+            fs.readFile(__dirname + '/tracks.json', function (err, json) {
                 let data = JSON.parse(json);
                 let track = data[Math.floor(Math.random() * data.length)];
                 res.writeHead(200, {"Content-Type": "text/html"});
@@ -51,7 +51,7 @@ http.createServer(function(req, res) {
             });
             break;
         case /^\/playlist/.test(req.url):
-            fs.readFile('./tracks.json', function (err, json) {
+            fs.readFile(__dirname + '/tracks.json', function (err, json) {
                 let data = JSON.parse(json);
                 let rand = getRandom(data, query&&query.amount?query.amount:50);
                 res.writeHead(200, {"Content-Type": "text/html"});
@@ -143,4 +143,4 @@ http.createServer(function(req, res) {
             res.end();
             break;
     }
-}).listen(80);
+}).listen(9003);

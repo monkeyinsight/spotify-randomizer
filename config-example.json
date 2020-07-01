@@ -1,5 +1,5 @@
 {
-    "client_id": "<client_id>",
-    "client_secret": "<client_secret>",
+    "clientId": "<client_id>",
+    "clientSecret": "<client_secret>",
     "redirectUri": "http://localhost/callback"
 }
