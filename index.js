@@ -135,7 +135,40 @@ http.createServer(function(req, res) {
                                             return track.track.id
                                         })
                                     );
-                                    resolve();
+
+                                    if (data.body.tracks.total > 100) {
+                                        let arr = [];
+                                        for (let i = 1; i < Math.ceil(data.body.tracks.total/100); i++) {
+                                            arr.push(i);
+                                        }
+                                        Promise.map(arr, function (offset) {
+                                            return new Promise(function (resolve) {
+                                                setTimeout(function () {
+                                                    spotify.getPlaylistTracks(playlist, {
+                                                        limit: 100,
+                                                        offset: offset * 100,
+                                                        fields: 'items'
+                                                    }).then(function (data) {
+                                                        if (data && data.body) {
+                                                            tracks.push(
+                                                                data.body.items.map(function (track) {
+                                                                    if (!track || !track.track) return;
+                                                                    return track.track.id
+                                                                })
+                                                            )
+                                                        }
+                                                        resolve();
+                                                    })
+                                                }, 500);
+                                            })
+                                        }, {concurrency: 1}).then(function () {
+                                            resolve();
+                                        }).catch(function (err) {
+                                            console.error(err);
+                                        });
+                                    } else {
+                                        resolve();
+                                    }
                                 }
                             }).catch(function (err) {
                                 console.error(err);
