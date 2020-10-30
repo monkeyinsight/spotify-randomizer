@@ -70,9 +70,15 @@ http.createServer(function(req, res) {
                 res.end();
             });
             break;
-        case /^\/parse/.test(req.url):
+        case /^\/parse\/(.+?)$/.test(req.url):
+            let params = {limit: 50};
+
+            let matches = req.url.match(/^\/parse\/(.+?)$/);
+            if (matches && matches[1]) {
+                params.country = matches[1];
+            }
             var tracks = [];
-            spotify.getCategories({country:'JP',locale: 'ja_JP',limit: 50}).then(function (data) {
+            spotify.getCategories(params).then(function (data) {
                 return data.body.categories.items.map(function (category) {
                     return category.id
                 });
