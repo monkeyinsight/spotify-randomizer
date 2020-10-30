@@ -143,14 +143,14 @@ http.createServer(function(req, res) {
                 }, {concurrency: 1}).then(function () {
                     tracks = tracks.flat(1);
                     console.log('Got ' + tracks.length + ' tracks.');
-                    fs.writeFile('tracks.json', JSON.stringify(tracks), 'utf8', function () {
-                        res.end();
+                    fs.writeFile('tracks.json', JSON.stringify(tracks.concat(require('./tracks.json'))), 'utf8', function () {
+                        console.log('Finished.');
                     });
                 })
             }).catch(function (err) {
                 console.error(err);
-                res.end(); 
             });
+            res.end(); 
             break;
         default:
             res.writeHead(200, {"Content-Type": "text/html"});
