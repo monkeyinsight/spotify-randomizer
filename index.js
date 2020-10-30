@@ -63,47 +63,59 @@ http.createServer(function(req, res) {
             break;
         case /^\/parse\/(.+?)$/.test(req.url):
             let params = {limit: 50};
+            var query = [];
 
-            let matches = req.url.match(/^\/parse\/(.+?)$/);
+            var matches = req.url.match(/^\/parse\/(.+?)$/);
             if (matches && matches[1]) {
-                params.country = matches[1];
+                if (/country/.test(matches[1])) {
+                    params.country = matches[1].split(':')[1];
+
+                    query.push(spotify.getCategories(params).then(function (data) {
+                        return data.body.categories.items.map(function (category) {
+                            return category.id
+                        });
+                    }).then(function (categories) {
+                        console.log('Getting categories...');
+                        //categories = categories.slice(0,1);
+                        let promises = [];
+                        for (var i in categories) {
+                            promises.push(
+                                new Promise(function (resolve, reject) {
+                                    spotify.getPlaylistsForCategory(categories[i], {
+                                        limit: 50
+                                    }).then(function (data) {
+                                        return resolve(data);
+                                    }, function (err) {
+                                        return resolve(categories[i], err);
+                                    });
+                                })
+                            );
+                        }
+        
+                        return new Promise(function (resolve) {
+                            Promise.all(promises).then(function (data) {
+                                console.log('Got ' + data.length + ' categories.');
+                                return resolve(data.map(function (category) {
+                                    if (!category || !category.body) return;
+                                    return category.body.playlists.items.map(function (playlist) {
+                                        return playlist.id;
+                                    });
+                                }));
+                            });
+                        });
+                    }));
+                    params.country = matches[1];
+                } else if (/playlist/.test(matches[1])) {
+                    query.push(spotify.searchPlaylists(matches[1].split(':')[1]).then(function (data) {
+                        return data.body.playlists.items.map(function (playlist) {
+                            return playlist.id;
+                        })
+                    }));
+                }
             }
             var tracks = [];
-            spotify.getCategories(params).then(function (data) {
-                return data.body.categories.items.map(function (category) {
-                    return category.id
-                });
-            }).then(function (categories) {
-                console.log('Getting categories...');
-                //categories = categories.slice(0,1);
-                let promises = [];
-                for (var i in categories) {
-                    promises.push(
-                        new Promise(function (resolve, reject) {
-                            spotify.getPlaylistsForCategory(categories[i], {
-                                limit: 50
-                            }).then(function (data) {
-                                return resolve(data);
-                            }, function (err) {
-                                return resolve(categories[i], err);
-                            });
-                        })
-                    );
-                }
-
-                return new Promise(function (resolve) {
-                    Promise.all(promises).then(function (data) {
-                        console.log('Got ' + data.length + ' categories.');
-                        return resolve(data.map(function (category) {
-                            if (!category || !category.body) return;
-                            return category.body.playlists.items.map(function (playlist) {
-                                return playlist.id;
-                            });
-                        }));
-                    });
-                });
-            }).then(function (playlists) {
-                playlists = playlists.flat(1);
+            new Promise.all(query).then(function (playlists) {
+                playlists = playlists.flat(2);
                 console.log('Reading ' + playlists.length + ' playlists...');
                 //playlists = playlists.slice(0,5);
                 let counter = 0;
