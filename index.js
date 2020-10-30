@@ -41,15 +41,6 @@ http.createServer(function(req, res) {
                 res.end();
             });
             break;
-        case /^\/duplicates/.test(req.url):
-            fs.readFile(__dirname + '/tracks.json', function (err, json) {
-                let data = JSON.parse(json);
-                let arr = Array.from(new Set(data));
-                fs.writeFile('tracks.json', JSON.stringify(arr), 'utf8', function () {
-                    res.end();
-                });
-            });
-            break;
         case /^\/random/.test(req.url):
             fs.readFile(__dirname + '/tracks.json', function (err, json) {
                 let data = JSON.parse(json);
@@ -143,7 +134,9 @@ http.createServer(function(req, res) {
                 }, {concurrency: 1}).then(function () {
                     tracks = tracks.flat(1);
                     console.log('Got ' + tracks.length + ' tracks.');
-                    fs.writeFile('tracks.json', JSON.stringify(tracks.concat(require('./tracks.json'))), 'utf8', function () {
+                    tracks = tracks.concat(require('./tracks.json'));
+                    let arr = Array.from(new Set(tracks));
+                    fs.writeFile('tracks.json', JSON.stringify(arr), 'utf8', function () {
                         console.log('Finished.');
                     });
                 })
