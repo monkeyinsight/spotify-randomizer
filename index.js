@@ -106,7 +106,9 @@ http.createServer(function(req, res) {
                     }));
                     params.country = matches[1];
                 } else if (/playlist/.test(matches[1])) {
-                    query.push(spotify.searchPlaylists(matches[1].split(':')[1]).then(function (data) {
+                    query.push(spotify.searchPlaylists(matches[1].split(':')[1], {
+                        limit: 50
+                    }).then(function (data) {
                         return data.body.playlists.items.map(function (playlist) {
                             return playlist.id;
                         })
@@ -179,13 +181,17 @@ http.createServer(function(req, res) {
                 }, {concurrency: 1}).then(function () {
                     tracks = tracks.flat(1);
                     console.log('Got ' + tracks.length + ' tracks.');
-                    let old = require('./tracks.json');
-                    if (old && old.length) {
-                        tracks = tracks.concat(old);
-                    }
-                    let arr = Array.from(new Set(tracks));
-                    fs.writeFile('tracks.json', JSON.stringify(arr), 'utf8', function () {
-                        console.log('Finished.');
+                    fs.readFile(__dirname + '/tracks.json', function (err, json) {
+                        if (!err) {
+                            let old = JSON.parse(json);
+                            if (old && old.length) {
+                                tracks = tracks.concat(old);
+                            }
+                        }
+                        let arr = Array.from(new Set(tracks));
+                        fs.writeFile('tracks.json', JSON.stringify(arr), 'utf8', function () {
+                            console.log('Finished.');
+                        });
                     });
                 })
             }).catch(function (err) {
