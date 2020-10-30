@@ -179,7 +179,10 @@ http.createServer(function(req, res) {
                 }, {concurrency: 1}).then(function () {
                     tracks = tracks.flat(1);
                     console.log('Got ' + tracks.length + ' tracks.');
-                    tracks = tracks.concat(require('./tracks.json'));
+                    let old = require('./tracks.json');
+                    if (old && old.length) {
+                        tracks = tracks.concat(old);
+                    }
                     let arr = Array.from(new Set(tracks));
                     fs.writeFile('tracks.json', JSON.stringify(arr), 'utf8', function () {
                         console.log('Finished.');
