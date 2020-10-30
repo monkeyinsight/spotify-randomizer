@@ -189,7 +189,7 @@ http.createServer(function(req, res) {
                             }
                         }
                         let arr = Array.from(new Set(tracks));
-                        fs.writeFile('tracks.json', JSON.stringify(arr), 'utf8', function () {
+                        fs.writeFile(__dirname + '/tracks.json', JSON.stringify(arr), 'utf8', function () {
                             console.log('Finished.');
                         });
                     });
